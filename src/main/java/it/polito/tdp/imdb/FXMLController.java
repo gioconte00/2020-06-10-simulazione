@@ -7,6 +7,7 @@ package it.polito.tdp.imdb;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.imdb.model.Actor;
 import it.polito.tdp.imdb.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -35,10 +36,10 @@ public class FXMLController {
     private Button btnSimulazione; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxGenere"
-    private ComboBox<?> boxGenere; // Value injected by FXMLLoader
+    private ComboBox<String> boxGenere; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxAttore"
-    private ComboBox<?> boxAttore; // Value injected by FXMLLoader
+    private ComboBox<Actor> boxAttore; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtGiorni"
     private TextField txtGiorni; // Value injected by FXMLLoader
@@ -48,17 +49,54 @@ public class FXMLController {
 
     @FXML
     void doAttoriSimili(ActionEvent event) {
-
+    	
+    	this.txtResult.clear();
+    	Actor a = this.boxAttore.getValue();
+    	
+    	if(a==null) {
+    		this.txtResult.setText("Seleziona un attore!");
+    		return;
+    	} else {
+    	this.txtResult.appendText("Lista: \n");
+    	
+    	for(Actor aa : this.model.getComponenteConnessa(a)) {
+    		this.txtResult.appendText(aa+"\n");
+    	}
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
 
+    	this.txtResult.clear();
+    	String genere = this.boxGenere.getValue();
+    	
+    	if(genere==null) {
+    		this.txtResult.setText("Seleziona un genere!");
+    		return;
+    	} else {
+    	this.txtResult.appendText(this.model.creaGrafo(genere)+ "\n");
+    	this.boxAttore.getItems().clear();
+    	this.boxAttore.getItems().addAll(this.model.getAttori());
+    	
+    	this.btnSimili.setDisable(false);
+    	this.btnSimulazione.setDisable(false);
+    	}
+    	
     }
 
     @FXML
     void doSimulazione(ActionEvent event) {
-
+    	
+    	this.txtResult.clear();
+    	int numGiorni = Integer.parseInt(this.txtGiorni.getText());
+    	this.model.doSimulatore(numGiorni);
+    	
+    	this.txtResult.appendText("Numero pause: "+this.model.getNumPause()+"\n Attori intervistati: \n");
+    	for(Actor a : this.model.getAttoriIntervistati()) {
+    		this.txtResult.appendText(a+"\n");
+    	}
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -71,9 +109,14 @@ public class FXMLController {
         assert txtGiorni != null : "fx:id=\"txtGiorni\" was not injected: check your FXML file 'Scene.fxml'.";
         assert txtResult != null : "fx:id=\"txtResult\" was not injected: check your FXML file 'Scene.fxml'.";
 
+        this.btnSimili.setDisable(true);
+        this.btnSimulazione.setDisable(true);
     }
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.boxGenere.getItems().clear();
+    	this.boxGenere.getItems().addAll(this.model.getAllGenre());
     }
 }
